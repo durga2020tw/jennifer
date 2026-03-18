@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Quest 英語闖關</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0c29;
+    --bg2: #1a1642;
+    --card: #1e1b4b;
+    --accent1: #f59e0b;
+    --accent2: #10b981;
+    --accent3: #ef4444;
+    --accent4: #6366f1;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: rgba(255,255,255,0.08);
+    --glow: 0 0 30px rgba(99,102,241,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated starfield background */
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(16,185,129,0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(245,158,11,0.08) 0%, transparent 50%);
+  }
+  .stars::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, white, transparent),
+      radial-gradient(1px 1px at 30% 60%, white, transparent),
+      radial-gradient(1px 1px at 50% 10%, white, transparent),
+      radial-gradient(1px 1px at 70% 40%, white, transparent),
+      radial-gradient(1px 1px at 85% 75%, white, transparent),
+      radial-gradient(1px 1px at 15% 85%, white, transparent),
+      radial-gradient(1px 1px at 45% 90%, white, transparent),
+      radial-gradient(1px 1px at 90% 15%, white, transparent),
+      radial-gradient(2px 2px at 25% 35%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(2px 2px at 65% 65%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 55% 55%, white, transparent),
+      radial-gradient(1px 1px at 35% 15%, white, transparent),
+      radial-gradient(1px 1px at 80% 90%, white, transparent),
+      radial-gradient(1px 1px at 5% 50%, white, transparent),
+      radial-gradient(1px 1px at 95% 45%, white, transparent);
+    opacity: 0.6;
+    animation: twinkle 4s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle { from { opacity: 0.4; } to { opacity: 0.8; } }
+
+  /* ─── Layout ─── */
+  .app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ─── Header ─── */
+  header {
+    padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15,12,41,0.8);
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, var(--accent1), var(--accent4));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    letter-spacing: 1px;
+  }
+  .logo span { color: var(--accent2); -webkit-text-fill-color: var(--accent2); }
+
+  .stats-bar { display: flex; gap: 16px; align-items: center; }
+  .stat-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.85rem; font-weight: 700;
+  }
+  .stat-chip .icon { font-size: 1rem; }
+  .stat-chip.xp { color: var(--accent1); }
+  .stat-chip.streak { color: #f87171; }
+  .stat-chip.level { color: var(--accent4); }
+
+  /* ─── Main ─── */
+  main { flex: 1; padding: 32px 24px; max-width: 900px; margin: 0 auto; width: 100%; }
+
+  /* ─── Home Screen ─── */
+  #home-screen { animation: fadeIn 0.6s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .hero {
+    text-align: center; padding: 40px 20px 32px;
+  }
+  .hero-emoji { font-size: 4rem; display: block; margin-bottom: 12px; animation: bounce 2s infinite; }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  .hero h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    line-height: 1.2; margin-bottom: 10px;
+    background: linear-gradient(135deg, #fff 30%, var(--accent4));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero p { color: var(--muted); font-size: 1rem; }
+
+  /* Progress path */
+  .world-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem; color: var(--accent1);
+    text-transform: uppercase; letter-spacing: 2px;
+    margin: 32px 0 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .world-label::before, .world-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .levels-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+
+  .level-card {
+    position: relative;
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+  }
+  .level-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(255,255,255,0.03));
+    pointer-events: none;
+  }
+  .level-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4), var(--glow);
+  }
+  .level-card.vocab { border-color: rgba(245,158,11,0.4); }
+  .level-card.vocab:hover { border-color: var(--accent1); box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(245,158,11,0.3); }
+  .level-card.grammar { border-color: rgba(99,102,241,0.4); }
+  .level-card.grammar:hover { border-color: var(--accent4); box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(99,102,241,0.3); }
+  .level-card.reading { border-color: rgba(16,185,129,0.4); }
+  .level-card.reading:hover { border-color: var(--accent2); box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(16,185,129,0.3); }
+
+  .level-icon { font-size: 2.8rem; margin-bottom: 12px; display: block; }
+  .level-name {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem; margin-bottom: 6px;
+  }
+  .level-card.vocab .level-name { color: var(--accent1); }
+  .level-card.grammar .level-name { color: var(--accent4); }
+  .level-card.reading .level-name { color: var(--accent2); }
+  .level-desc { font-size: 0.78rem; color: var(--muted); margin-bottom: 16px; }
+
+  .start-btn {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.85rem; font-weight: 800;
+    border: none; cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Nunito', sans-serif;
+  }
+  .level-card.vocab .start-btn { background: var(--accent1); color: #000; }
+  .level-card.grammar .start-btn { background: var(--accent4); color: #fff; }
+  .level-card.reading .start-btn { background: var(--accent2); color: #000; }
+  .start-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+
+  /* Badge row */
+  .badge-row {
+    display: flex; gap: 8px; justify-content: center; margin-top: 10px;
+  }
+  .badge {
+    font-size: 0.65rem; font-weight: 700; padding: 2px 8px;
+    border-radius: 10px; background: rgba(255,255,255,0.1); color: var(--muted);
+  }
+
+  /* ─── Quiz Screen ─── */
+  #quiz-screen { display: none; animation: slideIn 0.4s ease; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+
+  .quiz-header {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 28px;
+  }
+  .back-btn {
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+    color: var(--text); border-radius: 12px; padding: 8px 16px;
+    cursor: pointer; font-family: 'Nunito', sans-serif; font-size: 0.85rem; font-weight: 700;
+    transition: all 0.2s;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.15); }
+
+  .quiz-meta { flex: 1; }
+  .quiz-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+  }
+  .quiz-sub { font-size: 0.8rem; color: var(--muted); }
+
+  /* Progress bar */
+  .progress-track {
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px; height: 8px; overflow: hidden; margin-bottom: 28px;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 10px;
+    background: linear-gradient(90deg, var(--accent4), var(--accent2));
+    transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  /* Question card */
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 36px;
+    margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .question-card::after {
+    content: '';
+    position: absolute; top: -50%; right: -30%;
+    width: 300px; height: 300px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .q-type-badge {
+    display: inline-block; font-size: 0.7rem; font-weight: 800;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 16px;
+  }
+  .q-type-badge.vocab { background: rgba(245,158,11,0.2); color: var(--accent1); }
+  .q-type-badge.grammar { background: rgba(99,102,241,0.2); color: var(--accent4); }
+  .q-type-badge.reading { background: rgba(16,185,129,0.2); color: var(--accent2); }
+
+  .question-text {
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    font-weight: 700; line-height: 1.5; margin-bottom: 8px;
+  }
+  .question-hint {
+    font-size: 0.85rem; color: var(--muted); margin-bottom: 24px;
+    font-style: italic;
+  }
+
+  /* Reading passage */
+  .reading-passage {
+    background: rgba(255,255,255,0.04);
+    border-left: 3px solid var(--accent2);
+    border-radius: 0 12px 12px 0;
+    padding: 16px 20px; margin-bottom: 20px;
+    font-size: 0.95rem; line-height: 1.7; color: #cbd5e1;
+  }
+
+  /* Options */
+  .options-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .option-btn {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid var(--border);
+    border-radius: 16px; padding: 16px 20px;
+    color: var(--text); font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; text-align: left;
+    transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    display: flex; align-items: center; gap: 12px;
+    position: relative; overflow: hidden;
+  }
+  .option-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.3);
+    transform: scale(1.02);
+  }
+  .option-btn:disabled { cursor: default; }
+  .option-btn.correct {
+    background: rgba(16,185,129,0.2);
+    border-color: var(--accent2);
+    color: var(--accent2);
+    animation: pulse-green 0.4s ease;
+  }
+  .option-btn.wrong {
+    background: rgba(239,68,68,0.15);
+    border-color: var(--accent3);
+    color: #fca5a5;
+    animation: shake 0.4s ease;
+  }
+  @keyframes pulse-green {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  .option-letter {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 800; flex-shrink: 0;
+  }
+
+  /* Feedback */
+  .feedback-banner {
+    border-radius: 16px; padding: 16px 20px;
+    display: none; align-items: center; gap: 14px;
+    margin-top: 16px; animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+  .feedback-banner.correct { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); }
+  .feedback-banner.wrong { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); }
+  .feedback-icon { font-size: 2rem; }
+  .feedback-text strong { display: block; font-size: 1rem; margin-bottom: 4px; }
+  .feedback-text span { font-size: 0.85rem; color: var(--muted); }
+
+  /* Next button */
+  .next-btn {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg, var(--accent4), #818cf8);
+    border: none; border-radius: 16px;
+    color: #fff; font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem; cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 16px;
+  }
+  .next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,0.5); }
+
+  /* Loading state */
+  .loading-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 24px; padding: 60px 36px;
+    text-align: center;
+  }
+  .loader {
+    display: flex; gap: 8px; justify-content: center; margin-bottom: 20px;
+  }
+  .loader-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent4);
+    animation: loaderBounce 0.8s infinite ease-in-out;
+  }
+  .loader-dot:nth-child(2) { animation-delay: 0.16s; background: var(--accent2); }
+  .loader-dot:nth-child(3) { animation-delay: 0.32s; background: var(--accent1); }
+  @keyframes loaderBounce {
+    0%,80%,100% { transform: scale(0.6); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+  .loading-text { color: var(--muted); font-size: 0.95rem; }
+  .loading-text strong { color: var(--text); display: block; margin-bottom: 6px; font-size: 1.1rem; }
+
+  /* ─── Results Screen ─── */
+  #results-screen { display: none; animation: fadeIn 0.6s ease; text-align: center; padding: 40px 20px; }
+  .result-trophy { font-size: 5rem; margin-bottom: 16px; animation: trophy 1s ease; }
+  @keyframes trophy {
+    0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+    60% { transform: scale(1.2) rotate(5deg); }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+  .result-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.2rem; margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent1), var(--accent4));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .result-score {
+    font-size: 1rem; color: var(--muted); margin-bottom: 32px;
+  }
+  .score-big {
+    font-family: 'Fredoka One', cursive;
+    font-size: 4rem; display: block; margin: 16px 0;
+    background: linear-gradient(135deg, var(--accent2), var(--accent4));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .xp-gained {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 20px; padding: 10px 24px; margin-bottom: 32px;
+    font-weight: 800; color: var(--accent1);
+  }
+  .result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .result-btn {
+    padding: 14px 32px; border-radius: 16px;
+    font-family: 'Fredoka One', cursive; font-size: 1rem;
+    cursor: pointer; border: none; transition: all 0.2s;
+  }
+  .result-btn.primary {
+    background: linear-gradient(135deg, var(--accent4), #818cf8);
+    color: #fff;
+  }
+  .result-btn.secondary {
+    background: rgba(255,255,255,0.08);
+    color: var(--text); border: 1px solid var(--border);
+  }
+  .result-btn:hover { transform: translateY(-3px); }
+
+  /* ─── Error state ─── */
+  .error-card {
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 16px; padding: 24px; text-align: center;
+    color: #fca5a5;
+  }
+  .error-card button {
+    margin-top: 16px; padding: 10px 24px; border-radius: 12px;
+    background: rgba(239,68,68,0.3); border: 1px solid rgba(239,68,68,0.5);
+    color: #fca5a5; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 700;
+  }
+
+  /* Confetti particles */
+  .confetti-container {
+    position: fixed; inset: 0; pointer-events: none; z-index: 999;
+  }
+  .confetti-piece {
+    position: absolute; width: 10px; height: 10px;
+    top: -20px; border-radius: 2px;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  @media (max-width: 600px) {
+    .levels-grid { grid-template-columns: 1fr; }
+    .options-grid { grid-template-columns: 1fr; }
+    .stats-bar .stat-chip:last-child { display: none; }
+    main { padding: 20px 16px; }
+  }
+
+  /* ─── Question Count Modal ─── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 36px 32px;
+    width: min(420px, 90vw);
+    text-align: center;
+    animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .modal-icon { font-size: 3rem; margin-bottom: 12px; }
+  .modal-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem; margin-bottom: 6px;
+  }
+  .modal-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; }
+  .count-options {
+    display: flex; gap: 12px; justify-content: center; margin-bottom: 24px;
+  }
+  .count-btn {
+    width: 80px; height: 80px;
+    border-radius: 20px;
+    border: 2px solid var(--border);
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px;
+  }
+  .count-btn small {
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.65rem; font-weight: 700;
+    color: var(--muted); letter-spacing: 0.5px;
+  }
+  .count-btn:hover {
+    transform: scale(1.08);
+    border-color: var(--accent4);
+    background: rgba(99,102,241,0.15);
+    box-shadow: 0 0 20px rgba(99,102,241,0.3);
+  }
+  .count-btn.selected {
+    border-color: var(--accent4);
+    background: rgba(99,102,241,0.2);
+    box-shadow: 0 0 20px rgba(99,102,241,0.4);
+  }
+  .count-btn.vocab-sel:hover, .count-btn.vocab-sel.selected {
+    border-color: var(--accent1); background: rgba(245,158,11,0.15);
+    box-shadow: 0 0 20px rgba(245,158,11,0.3);
+  }
+  .count-btn.grammar-sel:hover, .count-btn.grammar-sel.selected {
+    border-color: var(--accent4); background: rgba(99,102,241,0.15);
+    box-shadow: 0 0 20px rgba(99,102,241,0.3);
+  }
+  .count-btn.reading-sel:hover, .count-btn.reading-sel.selected {
+    border-color: var(--accent2); background: rgba(16,185,129,0.15);
+    box-shadow: 0 0 20px rgba(16,185,129,0.3);
+  }
+  .modal-confirm-btn {
+    width: 100%; padding: 14px;
+    border: none; border-radius: 16px;
+    font-family: 'Fredoka One', cursive; font-size: 1.1rem;
+    cursor: pointer; transition: all 0.2s;
+    background: linear-gradient(135deg, var(--accent4), #818cf8);
+    color: #fff;
+  }
+  .modal-confirm-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,0.4); }
+  .modal-confirm-btn:disabled { opacity: 0.4; cursor: default; transform: none; box-shadow: none; }
+  .modal-cancel { margin-top: 12px; font-size: 0.85rem; color: var(--muted); cursor: pointer; }
+  .modal-cancel:hover { color: var(--text); }
+
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">English<span>Quest</span> 🚀</div>
+    <div class="stats-bar">
+      <div class="stat-chip xp"><span class="icon">⭐</span><span id="xp-count">0</span> XP</div>
+      <div class="stat-chip streak"><span class="icon">🔥</span><span id="streak-count">0</span></div>
+      <div class="stat-chip level"><span class="icon">🏅</span>Lv.<span id="level-count">1</span></div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Home Screen -->
+    <div id="home-screen">
+      <div class="hero">
+        <span class="hero-emoji">🌟</span>
+        <h1>英語冒險，出發！</h1>
+        <p>選擇你的關卡，挑戰 AI 出題，打敗英語魔王！</p>
+      </div>
+
+      <div class="world-label">⚔️ 選擇關卡</div>
+
+      <div class="levels-grid">
+        <div class="level-card vocab" onclick="openModal('vocab')">
+          <span class="level-icon">📚</span>
+          <div class="level-name">單字王國</div>
+          <div class="level-desc">Vocabulary Challenge<br>考驗你的英文單字量！</div>
+          <div class="badge-row">
+            <span class="badge">同義詞</span>
+            <span class="badge">選義</span>
+            <span class="badge">翻譯</span>
+          </div>
+          <br>
+          <button class="start-btn">開始闖關 ▶</button>
+        </div>
+
+        <div class="level-card grammar" onclick="openModal('grammar')">
+          <span class="level-icon">⚡</span>
+          <div class="level-name">文法要塞</div>
+          <div class="level-desc">Grammar Fortress<br>征服英文文法規則！</div>
+          <div class="badge-row">
+            <span class="badge">時態</span>
+            <span class="badge">介系詞</span>
+            <span class="badge">句型</span>
+          </div>
+          <br>
+          <button class="start-btn">開始闖關 ▶</button>
+        </div>
+
+        <div class="level-card reading" onclick="openModal('reading')">
+          <span class="level-icon">🔍</span>
+          <div class="level-name">閱讀秘境</div>
+          <div class="level-desc">Reading Adventure<br>探索英文閱讀理解！</div>
+          <div class="badge-row">
+            <span class="badge">主旨</span>
+            <span class="badge">細節</span>
+            <span class="badge">推理</span>
+          </div>
+          <br>
+          <button class="start-btn">開始闖關 ▶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-screen">
+      <div class="quiz-header">
+        <button class="back-btn" onclick="goHome()">← 返回</button>
+        <div class="quiz-meta">
+          <div class="quiz-title" id="quiz-title">單字王國</div>
+          <div class="quiz-sub" id="quiz-sub">AI 正在為你準備題目...</div>
+        </div>
+        <div class="stat-chip xp"><span id="quiz-score">0</span> / 5</div>
+      </div>
+
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+
+      <div id="question-area"></div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="results-screen">
+      <div class="result-trophy" id="result-trophy">🏆</div>
+      <div class="result-title" id="result-title">太厲害了！</div>
+      <div class="result-score">
+        你答對了 <span class="score-big" id="score-display">5/5</span>
+      </div>
+      <div class="xp-gained">⭐ 獲得 <span id="xp-gained-display">50</span> XP！</div>
+      <div class="result-actions">
+        <button class="result-btn primary" id="play-again-btn">再來一局 🔄</button>
+        <button class="result-btn secondary" onclick="goHome()">選其他關卡 🗺️</button>
+      </div>
+    </div>
+
+
+    <!-- Question Count Modal -->
+    <div id="count-modal" style="display:none;">
+      <div class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-box">
+          <div class="modal-icon" id="modal-icon">📚</div>
+          <div class="modal-title" id="modal-title">單字王國</div>
+          <div class="modal-sub">選擇這次要練習幾題？</div>
+          <div class="count-options" id="count-options">
+            <button class="count-btn" onclick="selectCount(5)">5<small>題</small></button>
+            <button class="count-btn" onclick="selectCount(10)">10<small>題</small></button>
+            <button class="count-btn" onclick="selectCount(15)">15<small>題</small></button>
+          </div>
+          <button class="modal-confirm-btn" id="modal-confirm" onclick="confirmStart()" disabled>開始挑戰 ▶</button>
+          <div class="modal-cancel" onclick="document.getElementById('count-modal').style.display='none'">✕ 取消</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Confetti container -->
+<div class="confetti-container" id="confetti-container"></div>
+
+<script>
+// ─── State ───
+let xp = 0, streak = 0, level = 1;
+let currentQuizType = '';
+let questions = [];
+let currentQ = 0;
+let correctCount = 0;
+let answered = false;
+
+// ─── Quiz configs ───
+const QUIZ_CONFIG = {
+  vocab: {
+    title: '📚 單字王國',
+    badge: 'vocab',
+    color: '#f59e0b',
+    prompt: `You are an English teacher creating easy vocabulary questions for Taiwanese 6th graders (age 11-12). Keep it simple and confidence-building.
+
+Use these simple question types across 5 questions:
+1. What does this word mean in Chinese? ("What does 'hungry' mean?" — 肚子餓/開心/生氣/害怕)
+2. Which English word matches the Chinese? ("'圖書館' in English is ___" — library/hospital/park/school)
+3. Simple fill-in-the-blank ("I drink ___ every morning." — water/book/chair/cloud)
+4. Which word is a type of animal/food/place? ("Which word is a fruit?" — apple/pencil/window/cloud)
+5. Very simple opposite ("What is the opposite of 'big'?" — small/tall/fast/cold)
+
+Use only very common everyday words: happy, sad, hungry, tired, big, small, hot, cold, fast, slow, clean, dirty, old, new, easy, hard, library, hospital, school, park, apple, banana, water, milk, bread, pencil, book, chair, window, table, sun, cloud, rain, flower, tree, dog, cat, bird, fish
+
+Make wrong options clearly and obviously different — students should feel successful and confident.
+
+Return ONLY a JSON array, no other text:
+[
+  {
+    "type": "vocab",
+    "question": "What does 'hungry' mean in Chinese?",
+    "hint": "This is how your tummy feels before lunch!",
+    "passage": null,
+    "options": ["肚子餓", "開心", "疲倦", "生氣"],
+    "answer": 0,
+    "explanation": "'Hungry' means 肚子餓. When you haven't eaten for a long time, you feel hungry!"
+  }
+]
+Generate all 5 questions. Keep them easy and encouraging.`
+  },
+  grammar: {
+    title: '⚡ 文法要塞',
+    badge: 'grammar',
+    color: '#6366f1',
+    prompt: `You are an English teacher creating easy grammar questions for Taiwanese 6th graders (age 11-12). Focus on the most basic grammar rules only.
+
+Use only these simple grammar topics across 5 questions:
+1. Simple present tense with he/she/it ("She ___ to school every day." — go/goes/going/went)
+2. Simple past tense with very common verbs ("Yesterday, I ___ lunch at home." — eat/ate/eating/eats)
+3. Basic articles a/an ("I have ___ umbrella." — a/an/the/some)
+4. Very simple prepositions of place ("The book is ___ the table." — on/in/at/to)
+5. Plural nouns ("There are two ___ in the garden." — flower/flowers/floweris/flowering)
+
+Use very short, simple sentences. Wrong options should be clearly wrong to a careful reader — not tricky.
+
+Return ONLY a JSON array, no other text:
+[
+  {
+    "type": "grammar",
+    "question": "She ___ to school every day.",
+    "hint": "She is one person — what ending do we add to the verb?",
+    "passage": null,
+    "options": ["go", "goes", "going", "went"],
+    "answer": 1,
+    "explanation": "With 'she', we add -s to the verb in simple present tense: 'goes'. We say 'She goes', not 'She go'."
+  }
+]
+Generate all 5 questions. Keep sentences short and vocabulary very simple.`
+  },
+  reading: {
+    title: '🔍 閱讀秘境',
+    badge: 'reading',
+    color: '#10b981',
+    prompt: `You are an English teacher creating easy reading comprehension questions for Taiwanese 6th graders (age 11-12). Use very simple English and short passages.
+
+Write 2 very short passages of 40-60 words each. Use only simple vocabulary. Topics: a student's daily routine, a favorite animal, a fun school day, a simple recipe, a pet, a birthday party.
+
+Write 5 questions total (2-3 per passage). Only use these easy question types:
+1. Direct detail ("What does ___ like to do?") — answer is one sentence in the text
+2. Simple who/what/where/when ("Where does ___ live?")
+3. Very easy main idea ("What is this passage about?") — with one clearly correct answer
+4. Simple yes/no fact ("Does ___ have a dog?") phrased as multiple choice
+5. Number/color/name detail ("How many ___ does she have?")
+
+All answers must be directly and clearly stated in the passage. No inference needed.
+
+Return ONLY a JSON array, no other text:
+[
+  {
+    "type": "reading",
+    "question": "What is Lily's favorite animal?",
+    "hint": "Look for the animal name in the passage.",
+    "passage": "Lily is a happy girl. She loves animals. Her favorite animal is the rabbit. She has a white rabbit named Snow. Every day, she feeds Snow carrots and lettuce. Lily thinks rabbits are cute and friendly.",
+    "options": ["Dog", "Cat", "Rabbit", "Bird"],
+    "answer": 2,
+    "explanation": "The passage says 'Her favorite animal is the rabbit.' So rabbits are Lily's favorite!"
+  }
+]
+Generate all 5 questions. Passages must use simple words. Answers must be clearly in the text.`
+  }
+};
+
+// ─── Navigation ───
+function show(id) {
+  document.getElementById('home-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('results-screen').style.display = 'none';
+  document.getElementById(id).style.display = 'block';
+}
+
+function goHome() {
+  show('home-screen');
+  document.getElementById('home-screen').style.animation = 'none';
+  requestAnimationFrame(() => {
+    document.getElementById('home-screen').style.animation = 'fadeIn 0.5s ease';
+  });
+}
+
+
+// ─── Modal ───
+let pendingQuizType = '';
+let selectedCount = 0;
+
+function openModal(type) {
+  const cfg = QUIZ_CONFIG[type];
+  pendingQuizType = type;
+  selectedCount = 0;
+
+  const icons = { vocab: '📚', grammar: '⚡', reading: '🔍' };
+  const colorClass = type + '-sel';
+
+  document.getElementById('modal-icon').textContent = icons[type];
+  document.getElementById('modal-title').textContent = cfg.title;
+  document.getElementById('modal-confirm').disabled = true;
+
+  // rebuild count buttons with correct color class
+  document.getElementById('count-options').innerHTML =
+    [5, 10, 15].map(n => `
+      <button class="count-btn ${colorClass}" onclick="selectCount(${n})" id="cnt-${n}">
+        ${n}<small>題</small>
+      </button>`).join('');
+
+  document.getElementById('count-modal').style.display = 'block';
+}
+
+function selectCount(n) {
+  selectedCount = n;
+  document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('cnt-' + n).classList.add('selected');
+  document.getElementById('modal-confirm').disabled = false;
+}
+
+function confirmStart() {
+  document.getElementById('count-modal').style.display = 'none';
+  startQuiz(pendingQuizType, selectedCount);
+}
+
+function closeModal(e) {
+  if (e.target.classList.contains('modal-overlay'))
+    document.getElementById('count-modal').style.display = 'none';
+}
+
+// ─── Start Quiz ───
+async function startQuiz(type, count) {
+  currentQuizType = type;
+  currentQ = 0;
+  correctCount = 0;
+  questions = [];
+  answered = false;
+
+  const cfg = QUIZ_CONFIG[type];
+  document.getElementById('quiz-title').textContent = cfg.title;
+  document.getElementById('quiz-sub').textContent = 'AI 正在出題中...';
+  document.getElementById('quiz-score').textContent = '0 / ' + count;
+  document.getElementById('progress-fill').style.width = '0%';
+
+  show('quiz-screen');
+  document.getElementById('quiz-screen').style.animation = 'none';
+  requestAnimationFrame(() => {
+    document.getElementById('quiz-screen').style.animation = 'slideIn 0.4s ease';
+  });
+
+  renderLoading();
+  await fetchQuestions(type, count);
+}
+
+function renderLoading() {
+  document.getElementById('question-area').innerHTML = `
+    <div class="loading-card">
+      <div class="loader">
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+      </div>
+      <div class="loading-text">
+        <strong>🤖 AI 正在為你出題...</strong>
+        請稍候，題目正在生成中！
+      </div>
+    </div>`;
+}
+
+// ─── Fetch from Claude API ───
+async function fetchQuestions(type, count) {
+  const cfg = QUIZ_CONFIG[type];
+  const prompt = cfg.prompt.replace(/Generate all 5 questions/g, `Generate all ${count} questions`).replace(/exactly 5 /g, `exactly ${count} `).replace(/5 questions/g, `${count} questions`);
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: count > 5 ? 2000 : 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    if (!response.ok) throw new Error('API error: ' + response.status);
+    const data = await response.json();
+    const text = data.content.map(b => b.text || '').join('');
+
+    // Strip markdown fences if present
+    const clean = text.replace(/```json|```/g, '').trim();
+    const jsonStart = clean.indexOf('[');
+    const jsonEnd = clean.lastIndexOf(']') + 1;
+    const jsonStr = clean.slice(jsonStart, jsonEnd);
+    questions = JSON.parse(jsonStr);
+
+    if (!Array.isArray(questions) || questions.length === 0) throw new Error('No questions');
+
+    document.getElementById('quiz-sub').textContent = `第 1 / ${questions.length} 題`;
+    renderQuestion();
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById('question-area').innerHTML = `
+      <div class="error-card">
+        <div style="font-size:2rem;margin-bottom:12px;">😵</div>
+        <strong>題目載入失敗</strong><br>
+        <span style="font-size:0.85rem;">請確認網路連線，或稍後再試。</span>
+        <br><button onclick="openModal('${type}')">🔄 重新載入</button>
+      </div>`;
+  }
+}
+
+// ─── Render Question ───
+function renderQuestion() {
+  answered = false;
+  const q = questions[currentQ];
+  const cfg = QUIZ_CONFIG[currentQuizType];
+  const progress = (currentQ / questions.length) * 100;
+
+  document.getElementById('progress-fill').style.width = progress + '%';
+  document.getElementById('quiz-sub').textContent = `第 ${currentQ + 1} / ${questions.length} 題`;
+  document.getElementById('quiz-score').textContent = `${correctCount} / ${questions.length}`;
+
+  const letters = ['A', 'B', 'C', 'D'];
+
+  const passageHTML = q.passage ? `
+    <div class="reading-passage">${q.passage}</div>` : '';
+
+  const optionsHTML = q.options.map((opt, i) => `
+    <button class="option-btn" onclick="selectAnswer(${i})" id="opt-${i}">
+      <span class="option-letter">${letters[i]}</span>
+      ${opt}
+    </button>`).join('');
+
+  const nextLabel = currentQ + 1 < questions.length ? '下一題 →' : '查看成績 🏆';
+  document.getElementById('question-area').innerHTML = `
+    <div class="question-card">
+      <span class="q-type-badge ${cfg.badge}">${currentQuizType === 'vocab' ? '📚 單字' : currentQuizType === 'grammar' ? '⚡ 文法' : '🔍 閱讀'}</span>
+      ${passageHTML}
+      <div class="question-text">${q.question}</div>
+      ${q.hint ? `<div class="question-hint">💡 提示：${q.hint}</div>` : ''}
+      <div class="options-grid">${optionsHTML}</div>
+      <div class="feedback-banner" id="feedback"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()" style="display:none;">${nextLabel}</button>
+    </div>`;
+}
+
+// ─── Select Answer ───
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[currentQ];
+  const correct = q.answer;
+  const buttons = document.querySelectorAll('.option-btn');
+
+  buttons.forEach(btn => btn.disabled = true);
+  buttons[idx].classList.add(idx === correct ? 'correct' : 'wrong');
+  if (idx !== correct) buttons[correct].classList.add('correct');
+
+  const feedback = document.getElementById('feedback');
+  const isRight = idx === correct;
+  if (isRight) correctCount++;
+
+  feedback.className = `feedback-banner ${isRight ? 'correct' : 'wrong'}`;
+  feedback.style.display = 'flex';
+  feedback.innerHTML = `
+    <div class="feedback-icon">${isRight ? '🎉' : '😅'}</div>
+    <div class="feedback-text">
+      <strong>${isRight ? '答對了！Great job! 🌟' : '答錯了！Keep going! 💪'}</strong>
+      <span>${q.explanation}</span>
+    </div>`;
+
+  document.getElementById('next-btn').style.display = 'block';
+
+  if (isRight) spawnStars();
+}
+
+// ─── Next Question ───
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= questions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+// ─── Results ───
+function showResults() {
+  const total = questions.length;
+  const pct = (correctCount / total) * 100;
+  const xpGained = correctCount * 10 + (pct === 100 ? 20 : 0);
+
+  xp += xpGained;
+  streak++;
+  if (xp >= level * 100) level++;
+
+  document.getElementById('xp-count').textContent = xp;
+  document.getElementById('streak-count').textContent = streak;
+  document.getElementById('level-count').textContent = level;
+
+  let trophy, title;
+  if (pct === 100) { trophy = '🏆'; title = '完美滿分！你是英語勇士！'; }
+  else if (pct >= 80) { trophy = '🥇'; title = '太厲害了！繼續加油！'; }
+  else if (pct >= 60) { trophy = '🥈'; title = '不錯喔！再練習一次吧！'; }
+  else { trophy = '💪'; title = '繼續努力！你做得到的！'; }
+
+  document.getElementById('result-trophy').textContent = trophy;
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('score-display').textContent = `${correctCount}/${total}`;
+  document.getElementById('xp-gained-display').textContent = xpGained;
+
+  document.getElementById('play-again-btn').onclick = () => openModal(currentQuizType);
+
+  show('results-screen');
+  document.getElementById('results-screen').style.animation = 'none';
+  requestAnimationFrame(() => {
+    document.getElementById('results-screen').style.animation = 'fadeIn 0.6s ease';
+  });
+
+  if (pct >= 80) launchConfetti();
+}
+
+// ─── Visual Effects ───
+function spawnStars() {
+  for (let i = 0; i < 6; i++) {
+    const star = document.createElement('div');
+    star.textContent = ['⭐','✨','💫'][Math.floor(Math.random() * 3)];
+    star.style.cssText = `
+      position:fixed; font-size:${1 + Math.random()}rem;
+      left:${20 + Math.random() * 60}vw; top:${30 + Math.random() * 30}vh;
+      pointer-events:none; z-index:999;
+      animation: floatAway 1s ease forwards;
+    `;
+    document.body.appendChild(star);
+    setTimeout(() => star.remove(), 1000);
+  }
+}
+
+function launchConfetti() {
+  const colors = ['#f59e0b','#6366f1','#10b981','#ef4444','#ec4899','#06b6d4'];
+  const container = document.getElementById('confetti-container');
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const size = 6 + Math.random() * 10;
+    piece.style.cssText = `
+      left:${Math.random() * 100}vw;
+      width:${size}px; height:${size}px;
+      background:${color};
+      border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
+      animation-duration:${2 + Math.random() * 2}s;
+      animation-delay:${Math.random() * 0.5}s;
+    `;
+    container.appendChild(piece);
+  }
+  setTimeout(() => { container.innerHTML = ''; }, 4000);
+}
+
+// Add dynamic style for star float
+const styleEl = document.createElement('style');
+styleEl.textContent = `@keyframes floatAway {
+  from { opacity:1; transform: translateY(0) scale(1); }
+  to { opacity:0; transform: translateY(-60px) scale(1.5); }
+}`;
+document.head.appendChild(styleEl);
+</script>
+</body>
+</html>
